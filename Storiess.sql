@@ -110,3 +110,92 @@ INSERT INTO Comments (CommentID, Content, CommentDate, UserID, StoryID) VALUES
 (3, 'Amazing chapters!', '2024-05-03 15:00:00', 3, 3),
 (4, 'Very intriguing!', '2024-05-04 17:00:00', 4, 4),
 (5, 'Can\'t wait for the next chapter!', '2024-05-05 19:00:00', 5, 5);
+
+-- QUERIES
+
+-- Query 1: Register a new user
+INSERT INTO Users (UserID, Username, Email, Password, RegistrationDate, LastLoginDate)
+VALUES (6, 'beomie', 'beomie@mail.com', 'passbeomie', '2001-03-13 12:00:00', NULL);
+SELECT * FROM Users;
+
+-- Query 2: Retrieve all stories written by a specific author
+SELECT * FROM Stories WHERE AuthorID = 1;
+
+-- Query 3: Add a new story
+INSERT INTO Stories (StoryID, Title, Description, CoverImage, Numberofchps, AuthorID, Genre)
+VALUES (6, 'Eridanus Flooding', 'FBI agent Jack Rhodes and Doctor V.C. Coldwater 
+team up to solve a murder involving treason, secret government research, and the Uzbekistani black 
+market.', 'eridanus_flooding.jpg', 82, 3, 'Thriller');
+SELECT * FROM Stories;
+
+-- Query 4: Retrieve stories with more than 55 chapters
+SELECT * FROM Stories WHERE Numberofchps > 55;
+
+-- Query 5: Retrieve users who have not logged in recently
+SELECT * FROM Users WHERE LastLoginDate < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 2 YEAR);
+
+-- Query 6: Calculate the average number of chapters per story
+SELECT AVG(Numberofchps) AS AvgChapters FROM Stories;
+
+-- Query 7: Retrieve the total number of chapters for each story
+SELECT s.Title AS Story_Title, SUM(c.ChapterNo) AS Total_Chapters
+FROM Stories s INNER JOIN Chapters c ON s.StoryID = c.StoryID
+GROUP BY s.Title;
+
+-- Query 8: Retrieve all bookmarks along with user and story details
+SELECT B.LibraryID, U.Username AS User, S.Title AS Story FROM Bookmark B JOIN Users U ON 
+B.UserID = U.UserID JOIN Stories S ON B.StoryID = S.StoryID;
+
+-- Query 9: Retrieve all users who have commented on a specific story
+SELECT DISTINCT U.Username AS Commenting_User FROM Users U INNER JOIN Comments C ON U.UserID = C.UserID WHERE C.StoryID = 1;
+
+-- Query 10: Delete a bookmark for a specific user and story
+DELETE FROM Bookmark WHERE UserID = 3 AND StoryID = 3;
+SELECT * FROM Bookmark;
+
+-- Query 11: Retrieve the top 5 most popular genres based on the number of stories
+SELECT Genre, COUNT(StoryID) AS Number_of_Stories FROM Stories GROUP BY Genre
+ORDER BY Number_of_Stories DESC LIMIT 5;
+
+-- Query 12: Retrieve the total number of comments for each story
+SELECT S.Title AS Story_Title, COUNT(C.CommentID) AS Total_Comments FROM Stories S 
+LEFT OUTER JOIN Comments C ON S.StoryID = C.StoryID GROUP BY S.Title;
+
+-- Query 13: Retrieve stories along with the count of comments and bookmarks for each
+SELECT S.Title AS Story_Title, 
+       COUNT(DISTINCT C.CommentID) AS Number_of_Comments,
+       COUNT(DISTINCT B.LibraryID) AS Number_of_Bookmarks
+FROM Stories S LEFT JOIN Comments C ON S.StoryID = C.StoryID
+LEFT JOIN Bookmark B ON S.StoryID = B.StoryID GROUP BY S.Title;
+
+-- Query 14: Retrieve stories and their genres, ordered by genre in descending order
+SELECT Title AS Story_Title, Genre FROM Stories ORDER BY Genre DESC;
+
+-- Query 15: Retrieve stories with more than 50 chapters and their authors' usernames
+SELECT s.Title AS Story_Title, s.Numberofchps AS Chapters_Count, a.Username AS Author_Username
+FROM Stories s INNER JOIN Authors a ON s.AuthorID = a.AuthorID WHERE s.Numberofchps > 50;
+
+-- Query 16: Create a view for Active Users:
+CREATE VIEW ActiveUser AS
+SELECT * FROM Users
+WHERE LastLoginDate >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 2 YEAR);
+
+-- Query 17: Create a View for Popular Genres
+CREATE VIEW PopularGenres AS
+SELECT Genre, COUNT(StoryID) AS Number_of_Stories
+FROM Stories GROUP BY Genre ORDER BY Number_of_Stories DESC LIMIT 3;
+
+-- Query 18: Create a View for Bookmarked Stories
+CREATE VIEW BookmarkedStories AS
+SELECT S.Title AS Story_Title, COUNT(B.LibraryID) AS Total_Bookmarks
+FROM Stories S
+LEFT OUTER JOIN Bookmark B ON S.StoryID = B.StoryID
+GROUP BY S.Title;
+
+-- Query 19: Retrieve the total number of comments for each story, sorted in descending order of total comments
+SELECT S.Title AS Story_Title, COUNT(C.CommentID) AS Total_Comments 
+FROM Stories S LEFT OUTER JOIN Comments C ON S.StoryID = C.StoryID GROUP BY S.Title ORDER BY Total_Comments DESC;
+
+-- Query 20: Retrieve the average number of comments per story
+SELECT AVG(CommentsPerStory) AS AvgCommentsPerStory FROM (SELECT COUNT(*) AS CommentsPerStory FROM Comments GROUP BY StoryID) AS CommentCounts;
+
